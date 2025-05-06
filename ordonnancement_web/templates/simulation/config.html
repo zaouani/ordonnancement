@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Configuration de la simulation</h2>
+    <form method="post">
+        {% csrf_token %}
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Paramètres généraux</h3>
+            </div>
+            <div class="card-body">
+                {{ parametres_form.as_p }}
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3>Opérateurs</h3>
+                <button type="button" class="btn btn-sm btn-success" id="add-operateur">+ Ajouter</button>
+            </div>
+            <div class="card-body">
+                {{ operateur_formset.management_form }}
+                <div id="operateurs-form-container">
+                    {% for form in operateur_formset %}
+                    <div class="operateur-form mb-3 p-3 border rounded">
+                        {{ form.as_p }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3>Machines</h3>
+                <button type="button" class="btn btn-sm btn-success" id="add-machine">+ Ajouter</button>
+            </div>
+            <div class="card-body">
+                {{ machine_formset.management_form }}
+                <div id="machines-form-container">
+                    {% for form in machine_formset %}
+                    <div class="machine-form mb-3 p-3 border rounded">
+                        {{ form.as_p }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h3>Produits</h3>
+                <button type="button" class="btn btn-sm btn-success" id="add-produit">+ Ajouter</button>
+            </div>
+            <div class="card-body">
+                {{ produit_formset.management_form }}
+                <div id="produits-form-container">
+                    {% for form in produit_formset %}
+                    <div class="produit-form mb-3 p-3 border rounded">
+                        {{ form.as_p }}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Lancer la simulation</button>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion dynamique des formulaires
+    function addForm(containerId, prefix, formHtml) {
+        const container = document.getElementById(containerId);
+        const totalForms = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+        const formIndex = parseInt(totalForms.value);
+        
+        const newForm = document.createElement('div');
+        newForm.className = `${prefix}-form mb-3 p-3 border rounded`;
+        newForm.innerHTML = formHtml.replace(/__prefix__/g, formIndex);
+        
+        container.appendChild(newForm);
+        totalForms.value = formIndex + 1;
+    }
+
+    // Opérateurs
+    document.getElementById('add-operateur').addEventListener('click', function() {
+        addForm(
+            'operateurs-form-container',
+            'operateurs',
+            `{{ operateur_formset.empty_form.as_p|escapejs }}`
+        );
+    });
+
+    // Machines
+    document.getElementById('add-machine').addEventListener('click', function() {
+        addForm(
+            'machines-form-container',
+            'machines',
+            `{{ machine_formset.empty_form.as_p|escapejs }}`
+        );
+    });
+
+    // Produits
+    document.getElementById('add-produit').addEventListener('click', function() {
+        addForm(
+            'produits-form-container',
+            'produits',
+            `{{ produit_formset.empty_form.as_p|escapejs }}`
+        );
+    });
+});
+</script>
+{% endblock %}

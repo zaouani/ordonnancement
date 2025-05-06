@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="simulation-container">
+    <h1>Lancement de simulation</h1>
+    
+    <form id="simulationForm" method="post">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label>Opérateurs (JSON):</label>
+            <textarea name="operateurs" class="form-control" rows="5">
+[
+    {"id": "OP1", "learning_params": {"LC": 0.85, "FC": 0.1}},
+    {"id": "OP2", "learning_params": {"LC": 0.9, "FC": 0.05}}
+]
+            </textarea>
+        </div>
+        
+        <div class="form-group">
+            <label>Tâches (JSON):</label>
+            <textarea name="taches" class="form-control" rows="10">
+[
+    {"id": "T1", "product_id": "P1", "temps_standard": 120},
+    {"id": "T2", "product_id": "P1", "temps_standard": 90, "precedence": "T1"}
+]
+            </textarea>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Lancer la simulation</button>
+    </form>
+    
+    <div id="results" class="mt-4"></div>
+</div>
+
+<script>
+document.getElementById('simulationForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+    const response = await fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    });
+    
+    const data = await response.json();
+    
+    if (data.status === 'success') {
+        document.getElementById('results').innerHTML = `
+            <div class="alert alert-success">
+                Simulation terminée! ID: ${data.simulation_id}
+                <a href="/simulation/results/${data.simulation_id}" class="btn btn-sm btn-info ml-2">
+                    Voir les résultats détaillés
+                </a>
+            </div>
+        `;
+    }
+});
+</script>
+{% endblock %}

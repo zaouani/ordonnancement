@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="results-container">
+    <h1>Résultats de la simulation #{{ simulation.id }}</h1>
+    
+    <div class="row">
+        <!-- Diagramme Gantt -->
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Diagramme de Gantt</h3>
+                </div>
+                <div class="card-body">
+                    <div id="ganttChart" style="height: 500px;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Métriques clés -->
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h3>Coûts</h3>
+                </div>
+                <div class="card-body">
+                    <p>Total: {{ cost_data.total }} €</p>
+                    <ul>
+                        {% for op, cout in cost_data.par_operateur.items %}
+                        <li>Opérateur {{ op }}: {{ cout }} €</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-header">
+                    <h3>Performances</h3>
+                </div>
+                <div class="card-body">
+                    <div id="performanceChart" style="height: 250px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Intégration Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-gantt@1.0.0"></script>
+
+<script>
+// Données sérialisées depuis Django
+const ganttData = JSON.parse('{{ gantt_data|escapejs }}');
+const performanceData = JSON.parse('{{ performance_data|escapejs }}');
+
+// Configuration du Gantt
+function initGanttChart() {
+    const datasets = ganttData.map(operator => ({
+        label: operator.operator_id,
+        data: operator.tasks.map(task => ({
+            x: task.task_id,
+            start: new Date(task.start),
+            end: new Date(task.end),
+            duration: task.duration
+        })),
+        backgroundColor: getRandomColor()
+    }));
+
+    new Chart(
+        document.getElementById('ganttChart').getContext('2d'),
+        {
+            type: 'bar',
+            data: { datasets },
+            options: {
+                scales: {
+                    x: { type: 'time' },
+                    y: { stacked: true }
+                },
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: (context) => {
+                                const task = context.raw;
+                                return `${task.x}: ${task.duration} min`;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    );
+}
+
+// Configuration du radar des performances
+function initPerformanceChart() {
+    new Chart(
+        document.getElementById('performanceChart').getContext('2d'),
+        {
+            type: 'radar',
+            data: {
+                labels: performanceData.labels,
+                datasets: [{
+                    label: 'Performance moyenne',
+                    data: performanceData.values,
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)'
+                }]
+            }
+        }
+    );
+}
+
+// Helper pour les couleurs aléatoires
+function getRandomColor() {
+    return `#${Math.floor(Math.random()*16777215).toString(16)}`;
+}
+
+// Initialisation au chargement
+document.addEventListener('DOMContentLoaded', () => {
+    initGanttChart();
+    initPerformanceChart();
+});
+</script>
+{% endblock %}
