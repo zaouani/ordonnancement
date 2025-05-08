@@ -145,3 +145,42 @@ class CostDetail(models.Model):
     class Meta:
         verbose_name = "Détail coût"
         verbose_name_plural = "Détails coûts"
+
+class Evenement(models.Model):
+    """Modèle pour les événements du système de simulation"""
+    simulation = models.ForeignKey(Simulation, on_delete=models.CASCADE, related_name='evenements')
+    type_evenement = models.CharField(max_length=50, choices=[
+        ('debut_tache', 'Début de tâche'),
+        ('fin_tache', 'Fin de tâche'),
+        ('arret', 'Arrêt de simulation')
+    ])
+    timestamp = models.FloatField(verbose_name="Temps (min)")
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, null=True, blank=True)
+    operator = models.ForeignKey(Operator, on_delete=models.CASCADE, null=True, blank=True)
+    details = models.JSONField(default=dict, blank=True)
+
+    class Meta:
+        verbose_name = "Événement"
+        verbose_name_plural = "Événements"
+        ordering = ['timestamp']
+
+    def __str__(self):
+        return f"Événement {self.type_evenement} à t={self.timestamp}"
+
+class TaskAssignment(models.Model):
+    """Assignation d'une tâche à un opérateur avec suivi temporel"""
+    operator = models.ForeignKey(Operator, on_delete=models.CASCADE, related_name='assignations')
+    task = models.ForeignKey(Task, on_delete=models.CASCADE, related_name='assignations')
+    machine = models.ForeignKey(Machine, on_delete=models.SET_NULL, null=True, blank=True)
+    debut = models.DateTimeField(verbose_name="Début")
+    fin = models.DateTimeField(verbose_name="Fin")
+    temps_reel = models.FloatField(verbose_name="Temps réel (min)")
+    est_terminee = models.BooleanField(default=False, verbose_name="Terminée")
+
+    class Meta:
+        verbose_name = "Assignation de tâche"
+        verbose_name_plural = "Assignations de tâches"
+        ordering = ['-debut']
+        
+    def __str__(self):
+        return f"{self.operator.id} → {self.task.id} ({self.debut})"

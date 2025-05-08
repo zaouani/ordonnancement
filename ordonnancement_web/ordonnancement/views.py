@@ -2,13 +2,12 @@ import json  # Ajoutez cette ligne en haut du fichier
 from django.shortcuts import render, get_object_or_404,redirect
 from django.http import JsonResponse
 from .forms import OperateurFormSet, MachineFormSet, ProduitFormSet, ParametresForm
-from .utils import (
-    SimulationEngine,
-    Ordonnanceur,
-    GanttEngine,
-    CostEngine,
-    PerformanceTracker
-)
+from .utils.simulation_runner import SimulationEngine
+from .utils.scheduler import  Ordonnanceur
+from .utils.gantt_generator import GanttEngine
+from .utils.cost_calculator import CostEngine
+from .utils.performance_calculator import PerformanceTracker
+
 from .models import Simulation
 
 def lancer_simulation_view(request):
